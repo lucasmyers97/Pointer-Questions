@@ -1,0 +1,84 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <glob.h>
+#include "dbg.h"
+
+#define MAX_DATA 100
+#define MAX_STRINGS 10
+
+/* 
+	read_in_search reads in user input. 
+	
+	-The user input is a set of strings separated
+	by spaces.
+	
+	-Each char of this input is placed contiguously
+	in memory (to_search), with each set of chars (forming a string)
+	separated by a null byte.
+	
+	-Additionally, each pointer in an array of pointers is given the
+	location of the beginning of each string. 
+*/
+
+int read_in_search(char *to_search, char **ptr_ptr)
+{
+	int stop = 0; /* while loop condition */
+	int char_num = 0; /* location in to_search */
+	ptr_ptr[0] = &to_search[char_num]; 
+	int i = 1;
+	char c = '\0';
+	
+	while (stop == 0) {
+		c = fgetc(stdin); 
+		check(c, "Character not copied.");
+		
+		switch (c) {
+			case ' ':
+				to_search[char_num] = '\0'; 
+				ptr_ptr[i] = &to_search[char_num + 1];
+				i++;
+				break;
+				
+			case '\n':
+				stop = 1;
+				break;
+			
+			case '\0':
+				sentinel("Found null byte.");
+				
+			default:
+				to_search[char_num] = c;
+		}	
+		char_num++;
+	}
+
+	return i;
+	
+error:
+	return -1;
+}
+				
+
+int main(int argc, char *argv[])
+{
+	char *to_search = malloc(MAX_DATA * sizeof(char)); /* create place for input to be stored */
+	char *ptr[MAX_STRINGS];
+	char **ptr_ptr = ptr;
+	
+	printf("What would you like to search for? "); /* prompt user */
+	int count = read_in_search(to_search, ptr_ptr); /* read what the user has inputted */
+	check(count > 0, "Read in failed."); 
+	
+	for (int i = 0; i < count; i++) {
+		printf("%s ", ptr_ptr[i]);
+	}
+	printf("\n");
+	
+	free(to_search);
+	
+	return 0;
+	
+error:
+	if (to_search) free(to_search);
+	return -1;
+}
